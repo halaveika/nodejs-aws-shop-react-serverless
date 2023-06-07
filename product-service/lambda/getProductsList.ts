@@ -1,6 +1,6 @@
 import { products } from '../mocks/produts';
 
-export const getProductsById = async () => {
+export const getProductsList = async () => {
   try {
     return {
       statusCode: 200,
