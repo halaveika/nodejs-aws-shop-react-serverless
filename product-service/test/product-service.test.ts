@@ -1,17 +1,56 @@
-// import * as cdk from 'aws-cdk-lib';
-// import { Template } from 'aws-cdk-lib/assertions';
-// import * as ProductService from '../lib/product-service-stack';
+import { getProductsById } from '../lambda/getProductsById';
+import { getProductsList } from '../lambda/getProductsList';
+import { products } from '../mocks/produts';
 
-// example test. To run these tests, uncomment this file along with the
-// example resource in lib/product-service-stack.ts
-test('SQS Queue Created', () => {
-//   const app = new cdk.App();
-//     // WHEN
-//   const stack = new ProductService.ProductServiceStack(app, 'MyTestStack');
-//     // THEN
-//   const template = Template.fromStack(stack);
+describe('getProductsById', () => {
+  it('should return response with the product', async () => {
+    const event: any = {
+      pathParameters: {
+        productId: '7567ec4b-b10c-48c5-9345-fc73c48a80aa'
+      }
+    };
 
-//   template.hasResourceProperties('AWS::SQS::Queue', {
-//     VisibilityTimeout: 300
-//   });
+    const expectedResponse = {
+      statusCode: 200,
+      body: JSON.stringify(products[0])
+    };
+
+    const response = await getProductsById(event);
+    expect(response).toEqual(expectedResponse);
+  });
+
+  it('should return 404 when the product does not exist', async () => {
+    const event: any = {
+      pathParameters: {
+        productId: 'test'
+      }
+    };
+
+    const expectedResponse = {
+      statusCode: 404,
+      body: JSON.stringify({ message: 'Product not found' })
+    };
+
+    const response = await getProductsById(event);
+    expect(response).toEqual(expectedResponse);
+  });
+
+  it('should return 500 error ', async () => {
+    const event: any = null;
+
+    const response = await getProductsById(event);
+    expect(response.statusCode).toBe(500);
+  });
+});
+
+describe('getProductsList', () => {
+  it('should return response with the products', async () => {
+    const expectedResponse = {
+      statusCode: 200,
+      body: JSON.stringify(products)
+    };
+
+    const response = await getProductsList();
+    expect(response).toMatchObject(expectedResponse);
+  });
 });

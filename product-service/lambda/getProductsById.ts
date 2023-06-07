@@ -1,4 +1,4 @@
-import { products } from '../mocks/produts';
+import { products } from '../mocks/products';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 
 export const getProductsById = async (event: APIGatewayProxyEvent) => {
