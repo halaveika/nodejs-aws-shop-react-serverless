@@ -1,16 +1,39 @@
-import { products } from '../mocks/products';
+import { APIGatewayProxyResult } from 'aws-lambda';
+import { Client } from 'pg';
+import dbconfig from '../config/pg-config';
 
-export const getProductsList = async () => {
+export async function getProductsList(): Promise<APIGatewayProxyResult> {
   try {
+    const client = new Client(dbconfig);
+    await client.connect();
+
+    const query = `
+      SELECT p.id, p.title, p.description, p.price, s.count
+      FROM products p
+      INNER JOIN stocks s ON p.id = s.product_id
+    `;
+
+    const result = await client.query(query);
+
+    const products = result.rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      price: row.price,
+      count: row.count
+    }));
+
+    await client.end();
+
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(products)
     };
-  } catch(err) {
+  } catch (error) {
+    console.error('Error retrieving products:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: err }),
+      body: JSON.stringify({ message: 'Internal Server Error' })
     };
   }
 }

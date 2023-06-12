@@ -1,6 +1,6 @@
 import { getProductsById } from '../lambda/getProductsById';
 import { getProductsList } from '../lambda/getProductsList';
-import { products } from '../mocks/produts';
+import { products } from '../mocks/products';
 
 describe('getProductsById', () => {
   it('should return response with the product', async () => {

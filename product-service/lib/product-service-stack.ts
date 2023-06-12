@@ -1,24 +1,30 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import * as path from 'path';
 import { Construct } from 'constructs';
+import dbconfig from '../config/pg-config';
 
 export class ProductServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    const shared: NodejsFunctionProps = {
+      runtime: lambda.Runtime.NODEJS_14_X,
+      environment: {...dbconfig, port: dbconfig.port.toString(),}
+    };
+
     const getProductsList = new NodejsFunction(this, 'GetProductsList', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      ...shared,
       functionName: 'getProductsList',
       entry: path.join(__dirname,'../lambda/getProductsList.ts'),
       handler: 'getProductsList'
     });
 
     const getProductsById = new NodejsFunction(this, 'getProductsById', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      ...shared,
       functionName: 'getProductsById',
       entry: path.join(__dirname,'../lambda/getProductsById.ts'),
       handler: 'getProductsById'
