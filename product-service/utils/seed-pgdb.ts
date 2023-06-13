@@ -1,11 +1,16 @@
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import { products } from '../mocks/products';
-import dbconfig from '../config/pg-config';
 
 dotenv.config()
 
-const pool = new Pool(dbconfig);
+const pool = new Pool({
+  user: process.env.PG_DB_USER,
+  host: process.env.PG_DB_HOST,
+  database: process.env.PG_DB_DATABASE,
+  password: process.env.PG_DB_PASSWORD,
+  port: process.env.PG_DB_PORT ? parseInt(process.env.PG_DB_PORT) : 5432,
+});
 
 async function createTablesAndInsertData() {
   const client = await pool.connect();

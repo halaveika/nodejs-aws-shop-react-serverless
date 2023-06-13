@@ -1,10 +1,15 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { Client } from 'pg';
-import dbconfig from '../config/pg-config';
 
 export async function getProductsList(): Promise<APIGatewayProxyResult> {
   try {
-    const client = new Client(dbconfig);
+    const client = new Client({
+      user: process.env.PG_DB_USER || '',
+      host: process.env.PG_DB_HOST || '',
+      database: process.env.PG_DB_DATABASE || '',
+      password: process.env.PG_DB_PASSWORD || '',
+      port: process.env.PG_DB_PORT ? parseInt(process.env.PG_DB_PORT) : 5432,
+    });
     await client.connect();
 
     const query = `

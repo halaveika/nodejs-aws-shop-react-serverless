@@ -5,7 +5,8 @@ import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import * as path from 'path';
 import { Construct } from 'constructs';
-import dbconfig from '../config/pg-config';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 export class ProductServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -13,7 +14,13 @@ export class ProductServiceStack extends cdk.Stack {
 
     const shared: NodejsFunctionProps = {
       runtime: lambda.Runtime.NODEJS_14_X,
-      environment: {...dbconfig, port: dbconfig.port.toString(),}
+      environment: {
+        PG_DB_USER: process.env.PG_DB_USER || '',
+        PG_DB_HOST: process.env.PG_DB_HOST || '',
+        PG_DB_DATABASE: process.env.PG_DB_DATABASE || '',
+        PG_DB_PASSWORD: process.env.PG_DB_PASSWORD || '',
+        PG_DB_PORT: process.env.PG_DB_PORT || '5432',
+      },
     };
 
     const getProductsList = new NodejsFunction(this, 'GetProductsList', {
@@ -28,6 +35,13 @@ export class ProductServiceStack extends cdk.Stack {
       functionName: 'getProductsById',
       entry: path.join(__dirname,'../lambda/getProductsById.ts'),
       handler: 'getProductsById'
+    });
+
+    const createProduct = new NodejsFunction(this, 'CreateProduct', {
+      ...shared,
+      functionName: 'createProduct',
+      entry: path.join(__dirname, '../lambda/createProduct.ts'),
+      handler: 'createProduct'
     });
 
     const api = new apiGateway.HttpApi(this, 'ProductApi', {
@@ -49,6 +63,12 @@ export class ProductServiceStack extends cdk.Stack {
       integration: new HttpLambdaIntegration('GetProductsByIdIntegration', getProductsById),
       path: '/products/{productId}',
       methods: [apiGateway.HttpMethod.GET],
+    });
+    
+    api.addRoutes({
+      integration: new HttpLambdaIntegration('CreateProductIntegration', createProduct),
+      path: '/products',
+      methods: [apiGateway.HttpMethod.POST],
     });
   }
 }
