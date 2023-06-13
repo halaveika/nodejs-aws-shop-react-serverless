@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function createProduct(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   try {
-    console.log('Incoming createProduct request:', event);
+    console.log('Incoming createProduct request:', JSON.stringify(event));
 
     const client = new Client({
       user: process.env.PG_DB_USER || '',
@@ -19,6 +19,10 @@ export async function createProduct(event: APIGatewayProxyEvent): Promise<APIGat
     await client.query('BEGIN');
 
     const { title, description, price, count } = JSON.parse(event.body || '');
+    console.log('New product title:', title);
+    console.log('New product description:', description);
+    console.log('New product price:', price);
+    console.log('New product count:', count);
 
     if (!title || !description || !price || !count) {
       await client.query('ROLLBACK');

@@ -3,7 +3,7 @@ import { Client } from 'pg';
 
 export async function getProductsById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   try {
-    console.log('Incoming getProductsById request:', event);
+    console.log('Incoming getProductsById request:', JSON.stringify(event));
     const client = new Client({
       user: process.env.PG_DB_USER || '',
       host: process.env.PG_DB_HOST || '',
@@ -14,6 +14,7 @@ export async function getProductsById(event: APIGatewayProxyEvent): Promise<APIG
     await client.connect();
 
     const productId = event.pathParameters?.productId;
+    console.log('Incoming productId:', productId);
 
     if (!productId) {
       return {

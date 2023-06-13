@@ -3,7 +3,7 @@ import { Client } from 'pg';
 
 export async function getProductsList(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   try {
-    console.log('Incoming getProductsList request:', event);
+    console.log('Incoming getProductsList request:', JSON.stringify(event));
     const client = new Client({
       user: process.env.PG_DB_USER || '',
       host: process.env.PG_DB_HOST || '',
