@@ -1,7 +1,7 @@
 openapi: "3.0.1"
 info:
   title: "ProductApi"
-  version: "2023-06-07 10:49:03UTC"
+  version: "2023-06-13 06:14:51UTC"
 servers:
 - url: "https://nrr2x80vid.execute-api.us-east-1.amazonaws.com/{basePath}"
   variables:
@@ -25,6 +25,16 @@ paths:
         type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:688316827440:function:getProductsList/invocations"
+        connectionType: "INTERNET"
+    post:
+      responses:
+        default:
+          description: "Default response for POST /products"
+      x-amazon-apigateway-integration:
+        payloadFormatVersion: "2.0"
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:688316827440:function:createProduct/invocations"
         connectionType: "INTERNET"
   /products/{productId}:
     get:

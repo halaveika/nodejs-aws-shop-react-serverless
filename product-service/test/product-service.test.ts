@@ -1,6 +1,7 @@
+import { APIGatewayProxyEvent } from 'aws-lambda';
 import { getProductsById } from '../lambda/getProductsById';
 import { getProductsList } from '../lambda/getProductsList';
-import { products } from '../mocks/produts';
+import { products } from '../mocks/products';
 
 describe('getProductsById', () => {
   it('should return response with the product', async () => {
@@ -50,7 +51,7 @@ describe('getProductsList', () => {
       body: JSON.stringify(products)
     };
 
-    const response = await getProductsList();
+    const response = await getProductsList({} as APIGatewayProxyEvent);
     expect(response).toMatchObject(expectedResponse);
   });
 });
