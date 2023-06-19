@@ -18,6 +18,7 @@ export class ImportServiceStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_14_X,
       environment: {
         S3_BUCKET_IMPORT_NAME : process.env.S3_BUCKET_IMPORT_NAME|| '',
+        S3_BUCKET_IMPORT_REGION : process.env.S3_BUCKET_IMPORT_REGION|| '',
       },
     };
 

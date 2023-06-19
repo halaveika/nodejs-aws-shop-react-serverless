@@ -1,10 +1,29 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export async function importProductsFile(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   try {
+    const fileName = event.queryStringParameters?.name;
+    console.log('importProductsFile input: ',JSON.stringify(event));
+    if (!fileName) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({errorMessage:'Please provide a file name.'}),
+      };
+    }
+    const s3 = new S3Client({ region: process.env.S3_BUCKET_IMPORT_REGION });
+    const params = {
+      Bucket: process.env.S3_BUCKET_IMPORT_NAME,
+      Key: `uploaded/${fileName}`,
+      Expires: 60,
+      ContentType: 'text/csv',
+    };
+    const command = new GetObjectCommand(params);
+    const url = await getSignedUrl(s3, command);
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'File is imported' })
+      body: JSON.stringify(url),
     };
   } catch (error) {
     return {
