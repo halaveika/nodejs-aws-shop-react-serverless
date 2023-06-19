@@ -1,10 +1,10 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
-export async function importProductsFile(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+export async function importFileParser(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   try {
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'File is imported' })
+      body: JSON.stringify({ message: 'File is parsed' })
     };
   } catch (error) {
     return {

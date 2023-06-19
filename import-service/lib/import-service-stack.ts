@@ -17,21 +17,31 @@ export class ImportServiceStack extends cdk.Stack {
     const shared: NodejsFunctionProps = {
       runtime: lambda.Runtime.NODEJS_14_X,
       environment: {
-        S3_BUCKET_IMPORT : process.env.S3_BUCKET_IMPORT || '',
+        S3_BUCKET_IMPORT_NAME : process.env.S3_BUCKET_IMPORT_NAME|| '',
       },
     };
+
+    const bucket = s3.Bucket.fromBucketName(this, 'ImportedBucket', process.env.S3_BUCKET_IMPORT_NAME || '');
 
     const importProductsFile = new NodejsFunction(this, 'importProductsFile', {
       ...shared,
       functionName: 'importProductsFile',
       entry: path.join(__dirname,'../lambda/importProductsFile.ts'),
       handler: 'importProductsFile',
-
     });
 
-    const bucket = s3.Bucket.fromBucketName(this, 'ImportedBucket', shared.environment!.S3_BUCKET_IMPORT);
+    bucket.grantReadWrite(importProductsFile);
 
-    bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(importProductsFile));
+    const importFileParser = new NodejsFunction(this, 'importFileParser', {
+      ...shared,
+      functionName: 'importFileParser',
+      entry: path.join(__dirname,'../lambda/importFileParser.ts'),
+      handler: 'importFileParser',
+    });
+
+    bucket.grantReadWrite(importFileParser);
+
+    bucket.addEventNotification(s3.EventType.OBJECT_CREATED_PUT, new s3Notifications.LambdaDestination(importFileParser), { prefix: 'uploaded' });
 
     const api = new apiGateway.HttpApi(this, 'ImportApi', {
       corsPreflight: {
@@ -41,10 +51,9 @@ export class ImportServiceStack extends cdk.Stack {
       },
     });
 
-
     api.addRoutes({
-      integration: new HttpLambdaIntegration('GetProductsListIntegration', importProductsFile),
-      path: '/products',
+      integration: new HttpLambdaIntegration('GetImportProductsFile', importProductsFile),
+      path: '/import',
       methods: [apiGateway.HttpMethod.GET],
     });
 
