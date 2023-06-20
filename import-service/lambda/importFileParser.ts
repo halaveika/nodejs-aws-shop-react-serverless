@@ -4,14 +4,16 @@ import * as stream from 'stream';
 import csvParser from "csv-parser";
 
 export async function importFileParser(event: any): Promise<APIGatewayProxyResult> {
+  console.log('importFileParser input: ',JSON.stringify(event));
   const s3 = new S3Client({ region: process.env.S3_BUCKET_IMPORT_REGION });
   const BUCKET = process.env.S3_BUCKET_IMPORT_NAME;
-
+console.log('BUCKET',BUCKET);
   try {
     for (const record of event.Records) {
       const res: any[] = [];
       const params = {
         Bucket: BUCKET,
+        Prefix: 'uploaded/',
         Key: record.s3.object.key,
       };
       const { Body } = await s3.send(new GetObjectCommand(params));

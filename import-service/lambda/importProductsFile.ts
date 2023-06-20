@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export async function importProductsFile(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
@@ -16,11 +16,10 @@ export async function importProductsFile(event: APIGatewayProxyEvent): Promise<A
     const params = {
       Bucket: process.env.S3_BUCKET_IMPORT_NAME,
       Key: `uploaded/${fileName}`,
-      Expires: 60,
       ContentType: 'text/csv',
     };
-    const command = new GetObjectCommand(params);
-    const url = await getSignedUrl(s3, command);
+    const command = new PutObjectCommand(params);
+    const url = await getSignedUrl(s3, command, { expiresIn: 60 });
     return {
       statusCode: 200,
       body: JSON.stringify(url),
