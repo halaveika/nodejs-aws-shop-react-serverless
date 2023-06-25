@@ -1,0 +1,38 @@
+openapi: "3.0.1"
+info:
+  title: "ImportApi"
+  version: "2023-06-19 02:53:01UTC"
+servers:
+- url: "https://375jzp82nc.execute-api.us-east-1.amazonaws.com/{basePath}"
+  variables:
+    basePath:
+      default: ""
+tags:
+- name: "aws:cloudformation:stack-id"
+  x-amazon-apigateway-tag-value: "arn:aws:cloudformation:us-east-1:688316827440:stack/ImportServiceStack/45505520-0e4c-11ee-aec0-0ebf9e21bb29"
+- name: "aws:cloudformation:stack-name"
+  x-amazon-apigateway-tag-value: "ImportServiceStack"
+- name: "aws:cloudformation:logical-id"
+  x-amazon-apigateway-tag-value: "ImportApiA8B26420"
+paths:
+  /import:
+    get:
+      responses:
+        default:
+          description: "Default response for GET /import"
+      x-amazon-apigateway-integration:
+        payloadFormatVersion: "2.0"
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:688316827440:function:importProductsFile/invocations"
+        connectionType: "INTERNET"
+x-amazon-apigateway-cors:
+  allowMethods:
+  - "*"
+  allowHeaders:
+  - "*"
+  maxAge: -42
+  allowCredentials: false
+  allowOrigins:
+  - "*"
+x-amazon-apigateway-importexport-version: "1.0"
