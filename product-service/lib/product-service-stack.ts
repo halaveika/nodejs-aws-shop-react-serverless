@@ -5,12 +5,28 @@ import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import * as path from 'path';
 import { Construct } from 'constructs';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 export class ProductServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    const importProductTopic = new sns.Topic(this, 'ImportProductTopic', {
+      topicName: 'import-product-topic'
+    })
+
+    const importQueue = new sqs.Queue(this, 'ImportQueue', {
+      queueName: 'import-file-queue'
+    })
+
+    new sns.Subscription(this, 'BigStockSubscription', {
+      endpoint: process.env.BIG_STOCK_EMAIL!,
+      protocol: sns.SubscriptionProtocol.EMAIL ,
+      topic: importProductTopic
+    })
 
     const shared: NodejsFunctionProps = {
       runtime: lambda.Runtime.NODEJS_14_X,
@@ -20,6 +36,7 @@ export class ProductServiceStack extends cdk.Stack {
         PG_DB_DATABASE: process.env.PG_DB_DATABASE || '',
         PG_DB_PASSWORD: process.env.PG_DB_PASSWORD || '',
         PG_DB_PORT: process.env.PG_DB_PORT || '5432',
+        IMPORT_PRODUCT_TOPIC_ARN: importProductTopic.topicArn
       },
     };
 
