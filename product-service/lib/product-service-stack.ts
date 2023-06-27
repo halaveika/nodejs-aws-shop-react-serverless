@@ -8,6 +8,7 @@ import { Construct } from 'constructs';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as dotenv from 'dotenv';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 dotenv.config();
 
 export class ProductServiceStack extends cdk.Stack {
@@ -39,6 +40,16 @@ export class ProductServiceStack extends cdk.Stack {
         IMPORT_PRODUCT_TOPIC_ARN: importProductTopic.topicArn
       },
     };
+
+    const catalogBatchProcess = new NodejsFunction(this, 'CatalogBatchProcess', {
+      ...shared,
+      functionName: 'catalogBatchProcess',
+      entry: path.join(__dirname,'../lambda/catalogBatchProcess.ts'),
+      handler: 'catalogBatchProcess'
+    })
+
+    importProductTopic.grantPublish(catalogBatchProcess);
+    catalogBatchProcess.addEventSource(new SqsEventSource(importQueue, { batchSize: 5 }));
 
     const getProductsList = new NodejsFunction(this, 'GetProductsList', {
       ...shared,
