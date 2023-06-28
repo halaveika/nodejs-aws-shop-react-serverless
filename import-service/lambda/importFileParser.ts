@@ -1,13 +1,16 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { S3Client, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import * as stream from 'stream';
 import csvParser from "csv-parser";
 
 export async function importFileParser(event: any): Promise<APIGatewayProxyResult> {
   console.log('importFileParser input: ',JSON.stringify(event));
   const s3 = new S3Client({ region: process.env.S3_BUCKET_IMPORT_REGION });
+  const sqs = new SQSClient({ region: process.env.SQS_REGION });
   const BUCKET = process.env.S3_BUCKET_IMPORT_NAME;
-console.log('BUCKET',BUCKET);
+  const QUEUE_URL = process.env.SQS_QUEUE_URL;
+  console.log('BUCKET',BUCKET);
   try {
     for (const record of event.Records) {
       const res: any[] = [];
@@ -22,7 +25,14 @@ console.log('BUCKET',BUCKET);
         const s3Stream = Body as stream.Readable;
         s3Stream
           .pipe(csvParser())
-          .on('data', (data) => res.push(data))
+          .on('data', async (data) => {
+            await sqs.send(
+              new SendMessageCommand({
+                QueueUrl: QUEUE_URL,
+                MessageBody: JSON.stringify(data),
+              })
+            );
+          })
           .on('end', () => resolve())
           .on('error', (err) => reject(err));
       });

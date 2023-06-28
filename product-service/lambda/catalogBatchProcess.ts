@@ -1,8 +1,6 @@
-import { APIGatewayProxyResult } from 'aws-lambda';
 import { PublishCommand } from '@aws-sdk/client-sns'
 import { createProduct } from './createProduct'; 
 import snsCleint from '../lib/sns'
-import { Product } from '../models/Product';
 
 export async function  catalogBatchProcess(event: any): Promise<any> {
   try {

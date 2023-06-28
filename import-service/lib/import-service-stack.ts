@@ -5,6 +5,7 @@ import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-node
 import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import * as s3Notifications from 'aws-cdk-lib/aws-s3-notifications';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import { Construct } from 'constructs';
@@ -16,12 +17,13 @@ export class ImportServiceStack extends cdk.Stack {
     super(scope, id, props);
 
     const lambdaRoleArn = process.env.S3_BUCKER_LAMBDA_ROLE || '';
-
+    const queue = sqs.Queue.fromQueueArn(this, 'ImportFileQueue', process.env.SQS_QUEUE_ARN || '' );
     const shared: NodejsFunctionProps = {
       runtime: lambda.Runtime.NODEJS_14_X,
       environment: {
         S3_BUCKET_IMPORT_NAME: process.env.S3_BUCKET_IMPORT_NAME || '',
         S3_BUCKET_IMPORT_REGION: process.env.S3_BUCKET_IMPORT_REGION || '',
+        SQS_QUEUE_URL: queue.queueUrl
       },
       role: Role.fromRoleArn(this, 'LambdaRole', lambdaRoleArn)
     };
@@ -45,6 +47,7 @@ export class ImportServiceStack extends cdk.Stack {
     });
 
     bucket.grantReadWrite(importFileParser);
+    queue.grantSendMessages(importFileParser);
 
     bucket.addEventNotification(s3.EventType.OBJECT_CREATED_PUT, new s3Notifications.LambdaDestination(importFileParser), { prefix: 'uploaded/' });
 
