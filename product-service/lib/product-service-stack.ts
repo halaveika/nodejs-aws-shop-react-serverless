@@ -23,10 +23,22 @@ export class ProductServiceStack extends cdk.Stack {
       queueName: 'import-file-queue'
     })
 
+  
+    const filterBigStock = sns.SubscriptionFilter.numericFilter({greaterThan: 10});
+    const filterSmallStock = sns.SubscriptionFilter.numericFilter({lessThanOrEqualTo: 10});
+
     new sns.Subscription(this, 'BigStockSubscription', {
       endpoint: process.env.BIG_STOCK_EMAIL!,
       protocol: sns.SubscriptionProtocol.EMAIL ,
-      topic: importProductTopic
+      topic: importProductTopic,
+      filterPolicy: { count : filterBigStock }
+    })
+
+    new sns.Subscription(this, 'SmallStockSubscription', {
+      endpoint: process.env.SMALL_STOCK_EMAIL!,
+      protocol: sns.SubscriptionProtocol.EMAIL ,
+      topic: importProductTopic,
+      filterPolicy: { count : filterSmallStock }
     })
 
     const shared: NodejsFunctionProps = {
