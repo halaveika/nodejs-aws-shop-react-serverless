@@ -6,7 +6,7 @@ export async function  catalogBatchProcess(event: any): Promise<any> {
   try {
     console.log('sqs event', event)
     for (const record of event.Records) {
-      const newProductResponse = await createProduct(JSON.parse(record.body));
+      const newProductResponse = await createProduct(record);
       const newProductData = JSON.parse(newProductResponse.body);
       console.log(newProductData);
 

@@ -11,6 +11,7 @@ export async function importFileParser(event: any): Promise<APIGatewayProxyResul
   const BUCKET = process.env.S3_BUCKET_IMPORT_NAME;
   const QUEUE_URL = process.env.SQS_QUEUE_URL;
   console.log('BUCKET',BUCKET);
+  console.log('QUEUE_URL',QUEUE_URL);
   try {
     for (const record of event.Records) {
       const res: any[] = [];

@@ -23,7 +23,8 @@ export class ImportServiceStack extends cdk.Stack {
       environment: {
         S3_BUCKET_IMPORT_NAME: process.env.S3_BUCKET_IMPORT_NAME || '',
         S3_BUCKET_IMPORT_REGION: process.env.S3_BUCKET_IMPORT_REGION || '',
-        SQS_QUEUE_URL: queue.queueUrl
+        SQS_QUEUE_URL: queue.queueUrl,
+        SQS_REGION: queue.env.region,
       },
       role: Role.fromRoleArn(this, 'LambdaRole', lambdaRoleArn)
     };

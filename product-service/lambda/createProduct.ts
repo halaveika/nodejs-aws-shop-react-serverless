@@ -60,7 +60,7 @@ export async function createProduct(event: APIGatewayProxyEvent) {
 
       return {
         statusCode: 201,
-        body: JSON.stringify({...recordedData })
+        body: JSON.stringify(recordedData)
       };
     } catch (error) {
       // Rollback the transaction
