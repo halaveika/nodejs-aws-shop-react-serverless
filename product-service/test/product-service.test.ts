@@ -1,57 +1,72 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import { getProductsById } from '../lambda/getProductsById';
-import { getProductsList } from '../lambda/getProductsList';
+import { createProduct } from '../lambda/createProduct';
 import { products } from '../mocks/products';
+import { stocks } from '../mocks/stocks';
+import { catalogBatchProcess } from '../lambda/catalogBatchProcess';
+import snsClient from '../lib/sns';
 
-describe('getProductsById', () => {
-  it('should return response with the product', async () => {
+jest.mock('../lambda/createProduct');
+jest.mock('../lib/sns');
+const sendSpy = jest.spyOn(snsClient, 'send');
+
+describe('catalogBatchProcess', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+    sendSpy.mockReset();
+  });
+
+  it('should process each record and publish messages to SNS', async () => {
     const event: any = {
-      pathParameters: {
-        productId: '7567ec4b-b10c-48c5-9345-fc73c48a80aa'
-      }
+      Records: [
+        {
+          description: "Short Product Description1",
+          count: 20,
+          price: 24,
+          title: "ProductOne",
+        },
+        {
+          description: "Short Product Description7",
+          count: 10,
+          price: 15,
+          title: "ProductTitle",
+        },
+        {
+          description: "Short Product Description2",
+          count: 23,
+          price: 23,
+          title: "Product",
+        },
+      ],
     };
+
+    const mockCreateProduct = jest.fn().mockResolvedValue({ statusCode: 200, body: JSON.stringify({ ...products[0], ...stocks[0] }) });
+    (createProduct as jest.Mock).mockImplementation(mockCreateProduct);
 
     const expectedResponse = {
       statusCode: 200,
-      body: JSON.stringify(products[0])
+      body: JSON.stringify(event.Records),
     };
 
-    const response = await getProductsById(event);
+    const response = await catalogBatchProcess(event);
     expect(response).toEqual(expectedResponse);
+    expect(mockCreateProduct).toHaveBeenCalledTimes(event.Records.length);
+    expect(sendSpy).toHaveBeenCalledTimes(event.Records.length);
   });
 
-  it('should return 404 when the product does not exist', async () => {
+  it('should return a 500 response when an error occurs', async () => {
     const event: any = {
-      pathParameters: {
-        productId: 'test'
-      }
+      Records: [
+        { ...products[0], ...stocks[0] },
+        { ...products[1], ...stocks[1] },
+        { ...products[2], ...stocks[2] },
+      ],
     };
 
-    const expectedResponse = {
-      statusCode: 404,
-      body: JSON.stringify({ message: 'Product not found' })
-    };
+    const mockCreateProduct = jest.fn().mockRejectedValue(new Error('Some error'));
+    (createProduct as jest.Mock).mockImplementation(mockCreateProduct);
 
-    const response = await getProductsById(event);
-    expect(response).toEqual(expectedResponse);
-  });
+    const response = await catalogBatchProcess(event);
 
-  it('should return 500 error ', async () => {
-    const event: any = null;
-
-    const response = await getProductsById(event);
-    expect(response.statusCode).toBe(500);
-  });
-});
-
-describe('getProductsList', () => {
-  it('should return response with the products', async () => {
-    const expectedResponse = {
-      statusCode: 200,
-      body: JSON.stringify(products)
-    };
-
-    const response = await getProductsList({} as APIGatewayProxyEvent);
-    expect(response).toMatchObject(expectedResponse);
+    expect(response.statusCode).toEqual(500);
+    expect(response.body).toEqual(JSON.stringify({ message: 'Internal Server Error' }));
   });
 });

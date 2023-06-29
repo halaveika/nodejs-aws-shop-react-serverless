@@ -1,7 +1,7 @@
 openapi: "3.0.1"
 info:
   title: "ProductApi"
-  version: "2023-06-13 06:14:51UTC"
+  version: "2023-06-29 08:00:14UTC"
 servers:
 - url: "https://nrr2x80vid.execute-api.us-east-1.amazonaws.com/{basePath}"
   variables:
