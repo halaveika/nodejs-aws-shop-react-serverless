@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { Client } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 
-export async function createProduct(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+export async function createProduct(event: APIGatewayProxyEvent) {
   try {
     console.log('Incoming createProduct request:', JSON.stringify(event));
 
@@ -50,9 +50,17 @@ export async function createProduct(event: APIGatewayProxyEvent): Promise<APIGat
       // Commit the transaction
       await client.query('COMMIT');
 
+      const recordedData = {
+        id: productId,
+        title,
+        description,
+        price,
+        count
+      };
+
       return {
         statusCode: 201,
-        body: JSON.stringify({ message: 'Product created successfully' })
+        body: JSON.stringify({...recordedData })
       };
     } catch (error) {
       // Rollback the transaction
