@@ -7,6 +7,7 @@ import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-al
 import * as s3Notifications from 'aws-cdk-lib/aws-s3-notifications';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Role } from 'aws-cdk-lib/aws-iam';
+import { HttpLambdaAuthorizer, HttpLambdaResponseType } from '@aws-cdk/aws-apigatewayv2-authorizers-alpha';
 import * as path from 'path';
 import { Construct } from 'constructs';
 import * as dotenv from 'dotenv';
@@ -60,11 +61,16 @@ export class ImportServiceStack extends cdk.Stack {
       },
     });
 
+    const basicAuthorizer  = lambda.Function.fromFunctionArn(this, 'basicAuthorizer', process.env.BASIC_AUTHORIZER_LAMBDA_ARN || '');
+    const authorizer = new HttpLambdaAuthorizer('BooksAuthorizer', basicAuthorizer, {
+      responseTypes: [HttpLambdaResponseType.SIMPLE],
+    });
+
     api.addRoutes({
       integration: new HttpLambdaIntegration('GetImportProductsFile', importProductsFile),
       path: '/import',
       methods: [apiGateway.HttpMethod.GET],
+      authorizer
     });
-
   }
 }
