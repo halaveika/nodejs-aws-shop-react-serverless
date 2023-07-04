@@ -1,45 +1,44 @@
-import { APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayAuthorizerResult } from 'aws-lambda';
 
-export async function basicAuthorizer(event: any): Promise<APIGatewayProxyResult> {
+export async function basicAuthorizer(event: any): Promise<any> {
   console.log('basicAuthorizer input: ',JSON.stringify(event));
-  const { authorizationToken } = event;
-  try {
-    if (!authorizationToken) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({ message: 'Authorization header is missing' }),
-      };
+  const { routeArn } = event;
+    const authorizationToken = event.headers.authorization;
+    if (!event.headers || !event.headers.authorization) {
+      return generatePolicy('user', 'Deny' ,routeArn)
     }
 
-    const [username, password] = Buffer.from(authorizationToken, 'base64')
+    const payload = authorizationToken.split(' ')[1];
+    const [username, password] = Buffer.from(payload, 'base64')
     .toString('utf-8')
     .split(':');
-
     const expectedPassword = process.env.TEST_PASSWORD;
     if (!expectedPassword || password !== expectedPassword) {
-      return {
-        statusCode: 403,
-        body: JSON.stringify({ message: 'Access denied' }),
-      };
+      return generatePolicy('user', 'Deny' ,routeArn)
     }
 
-    const expectedUsername = process.env.YOUR_GITHUB_ACCOUNT_LOGIN;
+    const expectedUsername = process.env.MY_GITHUB_ACCOUNT_LOGIN;
     if (!expectedUsername || username !== expectedUsername) {
-      return {
-        statusCode: 403,
-        body: JSON.stringify({ message: 'Invalid username' }),
-      };
+      return generatePolicy('user', 'Deny' ,routeArn)
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Authorization succeeded' }),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Internal Server Error' }),
-    };
-  }
+    return generatePolicy('user', 'Allow' ,routeArn)
 }
 
+function generatePolicy(principalId: string, effect: 'Allow' | 'Deny', resource: string): APIGatewayAuthorizerResult {
+  const policy: APIGatewayAuthorizerResult = {
+    principalId: principalId,
+    policyDocument: {
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Action: 'execute-api:Invoke',
+          Effect: effect,
+          Resource: resource,
+        },
+      ],
+    },
+  };
+
+  return policy;
+}

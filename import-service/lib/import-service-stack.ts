@@ -62,7 +62,7 @@ export class ImportServiceStack extends cdk.Stack {
     });
 
     const basicAuthorizer  = lambda.Function.fromFunctionArn(this, 'basicAuthorizer', process.env.BASIC_AUTHORIZER_LAMBDA_ARN || '');
-    const authorizer = new HttpLambdaAuthorizer('BooksAuthorizer', basicAuthorizer, {
+    const authorizer = new HttpLambdaAuthorizer('Authorizer', basicAuthorizer, {
       responseTypes: [HttpLambdaResponseType.SIMPLE],
     });
 
@@ -70,7 +70,7 @@ export class ImportServiceStack extends cdk.Stack {
       integration: new HttpLambdaIntegration('GetImportProductsFile', importProductsFile),
       path: '/import',
       methods: [apiGateway.HttpMethod.GET],
-      authorizer
+      authorizer,
     });
   }
 }
