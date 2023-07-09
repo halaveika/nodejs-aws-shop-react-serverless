@@ -1,15 +1,15 @@
 openapi: "3.0.1"
 info:
   title: "ImportApi"
-  version: "2023-06-29 07:58:20UTC"
+  version: "2023-07-04 08:24:01UTC"
 servers:
-- url: "https://375jzp82nc.execute-api.us-east-1.amazonaws.com/{basePath}"
+- url: "https://c5gyetmkhe.execute-api.us-east-1.amazonaws.com/{basePath}"
   variables:
     basePath:
       default: ""
 tags:
 - name: "aws:cloudformation:stack-id"
-  x-amazon-apigateway-tag-value: "arn:aws:cloudformation:us-east-1:688316827440:stack/ImportServiceStack/45505520-0e4c-11ee-aec0-0ebf9e21bb29"
+  x-amazon-apigateway-tag-value: "arn:aws:cloudformation:us-east-1:688316827440:stack/ImportServiceStack/d0019640-1a43-11ee-ad10-0a8ea96dc72d"
 - name: "aws:cloudformation:stack-name"
   x-amazon-apigateway-tag-value: "ImportServiceStack"
 - name: "aws:cloudformation:logical-id"
@@ -20,12 +20,27 @@ paths:
       responses:
         default:
           description: "Default response for GET /import"
+      security:
+      - Authorizer: []
       x-amazon-apigateway-integration:
         payloadFormatVersion: "2.0"
         type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:688316827440:function:importProductsFile/invocations"
         connectionType: "INTERNET"
+components:
+  securitySchemes:
+    Authorizer:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authorizer:
+        identitySource: "$request.header.Authorization"
+        authorizerUri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:688316827440:function:basicAuthorizer/invocations"
+        authorizerPayloadFormatVersion: "1.0"
+        authorizerResultTtlInSeconds: 300
+        type: "request"
+        enableSimpleResponses: false
 x-amazon-apigateway-cors:
   allowMethods:
   - "*"
