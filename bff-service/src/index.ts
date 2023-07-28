@@ -1,3 +1,4 @@
+
 import express, { Request, Response, NextFunction } from 'express';
 import axios, { AxiosResponse, Method } from 'axios';
 import dotenv from 'dotenv';
@@ -10,21 +11,26 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 app.use(async (req: Request, res: Response, next: NextFunction) => {
-  const recipientServiceName = req.params.recipientServiceName;
+  const recipientServiceName = req.path.split('/')[1];
   const recipientURL = process.env[recipientServiceName];
-  const query = req.query;
-
+  console.log('recipientServiceName',recipientServiceName);
+  console.log('recipientURL', recipientURL);
+  console.log('product', process.env.product);
+  console.log('cart', process.env.cart);
   if (!recipientURL) {
     return res.status(502).json({ error: 'Cannot process request' });
   }
 
   try {
     const { method, body } = req;
-    const queryString = Object.keys(query).length > 0 ? `?${require('querystring').stringify(query)}` : '';
+    console.log('method', method);
+    console.log('body', body);
+    const endpoint = req.originalUrl.replace(`/${recipientServiceName}`, '');
+    const queryString = req.url.replace(req.path, '');
 
     const response: AxiosResponse = await axios({
       method: method as Method,
-      url: `${recipientURL}${queryString}`,
+      url: `${recipientURL}${endpoint}${queryString}`,
       data: body,
     });
 
